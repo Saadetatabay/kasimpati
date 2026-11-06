@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Kasımpatı ve Müzik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .petal {
+            transform-origin: bottom center;
+            border-radius: 50% 50% 20% 20%;
+            opacity: 0;
+        }
+        
+        /* Çiçek açılma animasyonu */
+        .bloom-anim {
+            animation: bloom 2.5s forwards cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        @keyframes bloom {
+            0% {
+                transform: rotate(var(--r)) scale(0) translateY(10px);
+                opacity: 0;
+            }
+            100% {
+                transform: rotate(var(--r)) scale(var(--s)) translateY(var(--y));
+                opacity: 0.95;
+            }
+        }
+
+        /* Sap uzama animasyonu */
+        .stem-anim {
+            transform-origin: top center;
+            animation: growStem 2s forwards ease-out;
+        }
+
+        @keyframes growStem {
+            0% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 min-h-screen flex flex-col items-center justify-center overflow-hidden">
+    
+    <!-- İndirdiğin arka plan müziği -->
+    <audio id="bg-music" src="sarki.mp3" loop></audio>
+
+    <!-- Ana Konteyner -->
+    <div class="relative flex flex-col items-center justify-center mt-10">
+        
+        <!-- Çiçek Başlığı (Yaprakların ekleneceği yer) -->
+        <div id="flower-container" class="relative w-4 h-4 flex justify-center items-center z-20">
+            <!-- Çiçek Merkezi (Tohum kısmı) -->
+            <div class="absolute w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full z-50 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
+        </div>
+
+        <!-- Çiçek Sapı -->
+        <div id="stem" class="absolute top-2 w-3 h-80 bg-gradient-to-b from-green-500 to-green-900 rounded-b-full z-10 scale-y-0"></div>
+
+    </div>
+
+    <!-- Başlatma Butonu -->
+    <button id="action-btn" class="mt-80 px-8 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-semibold rounded-lg shadow-lg shadow-fuchsia-500/30 transition-all active:scale-95 z-50">
+        Müziği Başlat ve Çiçeği Aç
+    </button>
+
+    <script>
+        const container = document.getElementById('flower-container');
+        const stem = document.getElementById('stem');
+        const btn = document.getElementById('action-btn');
+        const audio = document.getElementById('bg-music');
+        const totalPetals = 150;
+
+        function createFlower() {
+            // Buton metnini değiştir ve müziği çal
+            btn.innerText = "Tekrar Aç";
+            audio.play().catch(e => console.log("Müzik dosyası bulunamadı, 'sarki.mp3' dosyasını kontrol et."));
+
+            // Sap animasyonunu sıfırlayıp tekrar tetikle
+            stem.classList.remove('stem-anim');
+            void stem.offsetWidth; // DOM'u yeniden hesaplatarak animasyonu resetler
+            stem.classList.add('stem-anim');
+
+            // Önceki yaprakları temizle
+            document.querySelectorAll('.petal').forEach(p => p.remove());
+
+            // Yaprakları oluştur
+            for (let i = 0; i < totalPetals; i++) {
+                const petal = document.createElement('div');
+                
+                petal.className = 'petal w-3 h-28 absolute bottom-1/2 left-1/2 -translate-x-1/2 shadow-md bloom-anim';
+                
+                // Renk geçişleri
+                if (i < 45) {
+                    petal.classList.add('bg-gradient-to-t', 'from-pink-600', 'to-rose-400');
+                } else if (i < 105) {
+                    petal.classList.add('bg-gradient-to-t', 'from-fuchsia-500', 'to-pink-400');
+                } else {
+                    petal.classList.add('bg-gradient-to-t', 'from-purple-600', 'to-fuchsia-400');
+                }
+
+                // Matematiksel dizilim
+                const rotation = i * 137.5;
+                const radius = Math.sqrt(i) * 1.6; 
+                const scale = 0.4 + (i / totalPetals) * 0.7; 
+                const yOffset = -radius - 15; 
+
+                // CSS değişkenlerini ata
+                petal.style.setProperty('--r', `${rotation}deg`);
+                petal.style.setProperty('--s', `${scale}`);
+                petal.style.setProperty('--y', `${yOffset}px`);
+                
+                // Yaprakların sırayla açılması
+                petal.style.animationDelay = `${(i * 0.015)}s`;
+                petal.style.zIndex = totalPetals - i;
+
+                container.appendChild(petal);
+            }
+        }
+
+        // Tıklanınca çalıştır
+        btn.addEventListener('click', createFlower);
+    </script>
+</body>
+</html>
